@@ -10,14 +10,13 @@ The first step is to set up the development environment to allow us to run all t
 
 1. [Download](https://canvas.sydney.edu.au/courses/57772/files/35835364/download) the biotechnology data bundle
 2. Download and install Python 3.10.0 [here](https://www.python.org/downloads/)
-3. Clone this repository into your preferred location
-4. Place the `processing.ipynb` file and the `requirements.txt` file into the `scripts/` directory within the structure described below
-5. Ensure Python is installed using `python3 -V` (the output should be `Python 3.10.0`)
-6. From within the `scripts` directory, create a virtual environment using `python3 -m venv venv`
-7. Deactivate any existing environments using `deactivate` or `conda deactivate`
-8. Activate the created virtual environment using `source venv/bin/activate`
-9. Install dependencies using `pip install -r requirements.txt`
-10. Open the python notebook using VSCode or jupyter notebook and you should be ready to run the code! 
+3. Clone this repository into your preferred location into the `scripts/` directory within the structure described below
+4. Ensure Python is installed using `python3 -V` (the output should be `Python 3.10.0`)
+5. From within the `scripts` directory, create a virtual environment using `python3 -m venv venv`
+6. Deactivate any existing environments using `deactivate` or `conda deactivate`
+7. Activate the created virtual environment using `source venv/bin/activate`
+8. Install dependencies using `pip install -r requirements.txt`
+9. Open the python notebook using VSCode or jupyter notebook and you should be ready to run the code! 
 
 ### Directory Structure
 For the reproducible code we assume that the python notebook is saved within the following directory structure:
