@@ -16,8 +16,7 @@ executing==2.0.1
 filelock==3.13.4
 fonttools==4.50.0
 fsspec==2024.3.1
-imageio==2.34.0
-ipykernel==6.29.4
+imageio==2.34.0ipykernel==6.29.4
 ipympl==0.9.3
 ipython==8.22.2
 ipython-genutils==0.2.0
@@ -68,3 +67,6 @@ typing_extensions==4.11.0
 tzdata==2024.1
 wcwidth==0.2.13
 widgetsnbextension==4.0.10
+opencv-python == 4.9.0.80
+tqdm == 4.66.2
+timm == 0.9.16
