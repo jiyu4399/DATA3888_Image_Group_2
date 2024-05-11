@@ -1,2 +1,10 @@
 final_notebook.ipynb filter=lfs diff=lfs merge=lfs -text
+processing-Copy2.ipynb filter=lfs diff=lfs merge=lfs -text
+processing.ipynb filter=lfs diff=lfs merge=lfs -text
+processing_new.ipynb filter=lfs diff=lfs merge=lfs -text
+processing_new_new.ipynb filter=lfs diff=lfs merge=lfs -text
+processing_rec.ipynb filter=lfs diff=lfs merge=lfs -text
+processing_vit.ipynb filter=lfs diff=lfs merge=lfs -text
+KNN[[:space:]]&[[:space:]]random[[:space:]]forest.ipynb filter=lfs diff=lfs merge=lfs -text
+VIT.ipynb filter=lfs diff=lfs merge=lfs -text
 *.ipynb filter=lfs diff=lfs merge=lfs -text
