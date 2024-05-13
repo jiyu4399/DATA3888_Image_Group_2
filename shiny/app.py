@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pandas as pd
 from plots import plot_auc_curve, plot_precision_recall_curve, plot_score_distribution
-from shiny import App, Inputs, reactive, render, ui
+from shiny import App, Inputs, reactive, render, ui, run_app
 
 app_dir = Path(__file__).parent
 scores = pd.read_csv(app_dir / "scores.csv")
@@ -85,5 +85,6 @@ def server(input: Inputs):
     def data():
         return dat()
 
-
 app = App(app_ui, server)
+if __name__ == "__main__":
+    run_app()
