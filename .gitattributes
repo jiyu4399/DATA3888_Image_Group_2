@@ -8,3 +8,5 @@ processing_vit.ipynb filter=lfs diff=lfs merge=lfs -text
 KNN[[:space:]]&[[:space:]]random[[:space:]]forest.ipynb filter=lfs diff=lfs merge=lfs -text
 VIT.ipynb filter=lfs diff=lfs merge=lfs -text
 *.ipynb filter=lfs diff=lfs merge=lfs -text
+*.pth filter=lfs diff=lfs merge=lfs -text
+*.png filter=lfs diff=lfs merge=lfs -text
