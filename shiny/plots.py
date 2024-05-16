@@ -17,6 +17,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import os
 
+
 def plot_score_distribution(df: DataFrame):
     plot = (
         ggplot(df, aes(x="training_score"))
@@ -82,6 +83,7 @@ def load_metrics(json_filepath):
         print(f"Error decoding JSON from file: {json_filepath}")
         return None
 
+
 def visualize_metrics(metrics, title, ylabel):
     bars = plt.bar(
         range(len(metrics)),
@@ -99,8 +101,9 @@ def visualize_metrics(metrics, title, ylabel):
             bar.get_x() + bar.get_width() / 2, yval, round(yval, 2), va="bottom"
         )  # va: vertical alignment
 
+
 def visualize_epoch_accuracies(average_accuracies):
-    #plt.figure(figsize=(5, 7))
+    # plt.figure(figsize=(5, 7))
 
     # Use a color map and select colors from different parts of the map for training and validation
     color_map = plt.cm.get_cmap(
@@ -147,6 +150,7 @@ def visualize_epoch_accuracies(average_accuracies):
     plt.tight_layout()
     # plt.show()
 
+
 def plot_epoch_accuracy(folder_path, num_folds=5, num_repeats=3):
     """Load metrics from multiple folds and repeats, and visualize them."""
     all_epoch_accuracies = []
@@ -162,9 +166,10 @@ def plot_epoch_accuracy(folder_path, num_folds=5, num_repeats=3):
     avg_epoch_accuracies = (
         np.mean(np.array(all_epoch_accuracies), axis=0) if all_epoch_accuracies else []
     )
-    # Visualisation 
+    # Visualisation
     if all_epoch_accuracies:
         visualize_epoch_accuracies(avg_epoch_accuracies)
+
 
 def plot_cluster_precision(folder_path, num_folds=5, num_repeats=3):
     """Load metrics from multiple folds and repeats, and visualize them."""
@@ -182,6 +187,7 @@ def plot_cluster_precision(folder_path, num_folds=5, num_repeats=3):
     # Visualization
     if avg_precision is not None:
         visualize_metrics(avg_precision, "Average Precision by Cluster", "Precision")
+
 
 def plot_cluster_recall(folder_path, num_folds=5, num_repeats=3):
     """Load metrics from multiple folds and repeats, and visualize them."""
@@ -217,4 +223,3 @@ def plot_cluster_f1(folder_path, num_folds=5, num_repeats=3):
     # Visualization
     if avg_f1_scores is not None:
         visualize_metrics(avg_f1_scores, "Average F1 Score by Cluster", "F1 Score")
- 

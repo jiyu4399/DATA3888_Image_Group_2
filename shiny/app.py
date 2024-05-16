@@ -85,6 +85,7 @@ def server(input: Inputs):
     def data():
         return dat()
 
+
 app = App(app_ui, server)
 if __name__ == "__main__":
     run_app()

@@ -6,7 +6,12 @@ from faicons import icon_svg
 from shinywidgets import output_widget, render_plotly
 import os
 import faicons as fa
-from plots import plot_epoch_accuracy, plot_cluster_precision, plot_cluster_recall, plot_cluster_f1
+from plots import (
+    plot_epoch_accuracy,
+    plot_cluster_precision,
+    plot_cluster_recall,
+    plot_cluster_f1,
+)
 
 app_dir = Path(__file__).parent
 ## Lab Model (3 transformation techniques)
@@ -34,14 +39,11 @@ average_metrics = {
     "Accuracy": sum(labmodel["Accuracy"] for labmodel in labmodels) / len(labmodels),
     "Precision": sum(labmodel["Precision"] for labmodel in labmodels) / len(labmodels),
     "Recall": sum(labmodel["Recall"] for labmodel in labmodels) / len(labmodels),
-    "F1 Score": sum(labmodel["F1 Score"] for labmodel in labmodels) / len(labmodels)
+    "F1 Score": sum(labmodel["F1 Score"] for labmodel in labmodels) / len(labmodels),
 }
 
 # Create DataFrame from average_metrics
 df = pd.DataFrame.from_records([average_metrics])
-
-
-
 
 
 app_ui = ui.page_navbar(
@@ -53,11 +55,7 @@ app_ui = ui.page_navbar(
                 ui.input_select(
                     "Models",
                     "Models",
-                    choices=[
-                        "Basic CNN (Lab Model)",
-                        "ResNet18",
-                        "ResNet50"
-                    ],
+                    choices=["Basic CNN (Lab Model)", "ResNet18", "ResNet50"],
                 ),
                 ui.input_select(
                     "transformation",
@@ -68,7 +66,7 @@ app_ui = ui.page_navbar(
                         "Random Rotation",
                         "Normalisation & Random Flip",
                         "Normalisation & Random Rotation",
-                        "Normalisation & Random Flip & Random Rotation"
+                        "Normalisation & Random Flip & Random Rotation",
                     ],
                 ),
                 ui.input_select(
@@ -78,12 +76,13 @@ app_ui = ui.page_navbar(
                         "No masking",
                         "Cell boundary",
                         "Canny contour",
-                        "Gaussian filter"
+                        "Gaussian filter",
                     ],
-                )
+                ),
             ),
             ui.navset_card_underline(
-                ui.nav_panel("Description",
+                ui.nav_panel(
+                    "Description",
                     ui.layout_columns(
                         ui.card(
                             ui.markdown("""
@@ -100,27 +99,28 @@ app_ui = ui.page_navbar(
                         ),
                     ),
                 ),
-                ui.nav_panel("Overall",
+                ui.nav_panel(
+                    "Overall",
                     ui.layout_column_wrap(
                         ui.value_box(
                             "Overall Accuracy",
                             ui.output_text("avg_accuracy"),
-                            theme= "gradient-yellow-orange",
+                            theme="gradient-yellow-orange",
                         ),
                         ui.value_box(
                             "Overall Precision",
                             ui.output_text("avg_precision"),
-                            theme= "gradient-yellow-orange",
+                            theme="gradient-yellow-orange",
                         ),
                         ui.value_box(
                             "Overall Recall",
                             ui.output_text("avg_recall"),
-                            theme= "gradient-yellow-orange",
+                            theme="gradient-yellow-orange",
                         ),
                         ui.value_box(
                             "Overall F1 Score",
                             ui.output_text("avg_f1_score"),
-                            theme= "gradient-yellow-orange",
+                            theme="gradient-yellow-orange",
                         ),
                         fill=True,
                     ),
@@ -132,13 +132,18 @@ app_ui = ui.page_navbar(
                         ),
                         ui.card(
                             ui.card_header("Evaluation by cross validation"),
-                            ui.input_select("selected_metric", "Select Metric", choices=["Accuracy", "Precision", "Recall", "F1 Score"]),
-                            ui.output_data_frame("overall_table")
+                            ui.input_select(
+                                "selected_metric",
+                                "Select Metric",
+                                choices=["Accuracy", "Precision", "Recall", "F1 Score"],
+                            ),
+                            ui.output_data_frame("overall_table"),
                         ),
                         col_widths=[6, 6],
                     ),
                 ),
-                ui.nav_panel("By Cluster",
+                ui.nav_panel(
+                    "By Cluster",
                     ui.navset_tab_card(
                         ui.nav(
                             "Cluster Precision",
@@ -172,7 +177,12 @@ app_ui = ui.page_navbar(
         ui.layout_columns(
             ui.card(
                 ui.card_header("Upload Image"),
-                ui.input_file("file1", "Choose an image to upload", accept=["image/png"], multiple=False),
+                ui.input_file(
+                    "file1",
+                    "Choose an image to upload",
+                    accept=["image/png"],
+                    multiple=False,
+                ),
                 ui.output_image("uploaded_image"),
                 full_screen=True,
             ),
@@ -181,11 +191,7 @@ app_ui = ui.page_navbar(
                 ui.input_select(
                     "predict_model",
                     "Models",
-                    choices=[
-                        "Basic CNN (Lab Model)",
-                        "ResNet18",
-                        "ResNet50"
-                    ],
+                    choices=["Basic CNN (Lab Model)", "ResNet18", "ResNet50"],
                 ),
                 ui.input_select(
                     "predict_transformation",
@@ -196,7 +202,7 @@ app_ui = ui.page_navbar(
                         "Random Rotation",
                         "Normalisation & Random Flip",
                         "Normalisation & Random Rotation",
-                        "Normalisation & Random Flip & Random Rotation"
+                        "Normalisation & Random Flip & Random Rotation",
                     ],
                 ),
                 ui.input_select(
@@ -206,7 +212,7 @@ app_ui = ui.page_navbar(
                         "No masking",
                         "Cell boundary",
                         "Canny contour",
-                        "Gaussian filter"
+                        "Gaussian filter",
                     ],
                 ),
                 ui.input_action_button("predict", "Predict"),
@@ -214,9 +220,8 @@ app_ui = ui.page_navbar(
             ui.card(
                 ui.card_header("Prediction Results"),
                 ui.output_text_verbatim("prediction_results"),
-
             ),
-            col_widths=[4, 4, 4]
+            col_widths=[4, 4, 4],
         ),
         {"class": "bslib-page-dashboard"},
     ),
@@ -226,10 +231,6 @@ app_ui = ui.page_navbar(
 )
 
 
-
-
-    
-
 def server(input: Inputs):
     @render.data_frame
     def overall_table():
@@ -237,40 +238,50 @@ def server(input: Inputs):
         metrics_list = []
         for i, labmodel in enumerate(labmodels, start=1):
             metrics = {
-                "Iteration":  f"Folder {i}",
+                "Iteration": f"Folder {i}",
                 "Accuracy": labmodel["Accuracy"],
                 "Precision": labmodel["Precision"],
                 "Recall": labmodel["Recall"],
-                "F1 Score": labmodel["F1 Score"]
+                "F1 Score": labmodel["F1 Score"],
             }
             metrics_list.append(metrics)
         df = pd.DataFrame(metrics_list)
 
-
         # Transform the DataFrame to make it vertical
-        df_vertical = df.melt(id_vars=["Iteration"], var_name="Metric", value_name="Value")
+        df_vertical = df.melt(
+            id_vars=["Iteration"], var_name="Metric", value_name="Value"
+        )
 
         # Filter the DataFrame based on the selected metric
         selected_metric = input.selected_metric()
         df_filtered = df_vertical[df_vertical["Metric"] == selected_metric]
         return df_filtered
-    
+
     @render.plot
     def accuracy_plot():
         num_splits = 4
         num_repeats = 1
         script_dir = os.path.dirname(os.path.realpath("__file__"))
         folder_path = os.path.join(script_dir, "LabModel")
-        return plot_epoch_accuracy(folder_path, num_folds=num_splits, num_repeats=num_repeats)
-    
+        return plot_epoch_accuracy(
+            folder_path, num_folds=num_splits, num_repeats=num_repeats
+        )
 
     @reactive.Calc
     def avg_metrics():
         return {
-            "Accuracy": round(sum(labmodel["Accuracy"] for labmodel in labmodels) / len(labmodels), 4),
-            "Precision": round(sum(labmodel["Precision"] for labmodel in labmodels) / len(labmodels), 4),
-            "Recall": round(sum(labmodel["Recall"] for labmodel in labmodels) / len(labmodels), 4),
-            "F1 Score": round(sum(labmodel["F1 Score"] for labmodel in labmodels) / len(labmodels), 4),
+            "Accuracy": round(
+                sum(labmodel["Accuracy"] for labmodel in labmodels) / len(labmodels), 4
+            ),
+            "Precision": round(
+                sum(labmodel["Precision"] for labmodel in labmodels) / len(labmodels), 4
+            ),
+            "Recall": round(
+                sum(labmodel["Recall"] for labmodel in labmodels) / len(labmodels), 4
+            ),
+            "F1 Score": round(
+                sum(labmodel["F1 Score"] for labmodel in labmodels) / len(labmodels), 4
+            ),
         }
 
     @render.text
@@ -288,15 +299,17 @@ def server(input: Inputs):
     @render.text
     def avg_f1_score():
         return f"{avg_metrics()['F1 Score']}"
-    
+
     @render.plot
     def clusters_precision_plot():
         num_splits = 4
         num_repeats = 1
         script_dir = os.path.dirname(os.path.realpath("__file__"))
         folder_path = os.path.join(script_dir, "LabModel")
-        plot_cluster_precision(folder_path, num_folds=num_splits, num_repeats=num_repeats)
-    
+        plot_cluster_precision(
+            folder_path, num_folds=num_splits, num_repeats=num_repeats
+        )
+
     @render.plot
     def clusters_recall_plot():
         num_splits = 4
@@ -304,7 +317,7 @@ def server(input: Inputs):
         script_dir = os.path.dirname(os.path.realpath("__file__"))
         folder_path = os.path.join(script_dir, "LabModel")
         plot_cluster_recall(folder_path, num_folds=num_splits, num_repeats=num_repeats)
-    
+
     @render.plot
     def clusters_f1_plot():
         num_splits = 4
@@ -312,7 +325,6 @@ def server(input: Inputs):
         script_dir = os.path.dirname(os.path.realpath("__file__"))
         folder_path = os.path.join(script_dir, "LabModel")
         plot_cluster_f1(folder_path, num_folds=num_splits, num_repeats=num_repeats)
-
 
 
 app = App(app_ui, server)

@@ -1,12 +1,20 @@
-# Import necessary packages 
+# Import necessary packages
 from pathlib import Path
 import json
 import pandas as pd
-from plots import plot_auc_curve, plot_precision_recall_curve, plot_score_distribution, plot_epoch_accuracy, plot_cluster_precision, plot_cluster_recall, plot_cluster_f1
+from plots import (
+    plot_auc_curve,
+    plot_precision_recall_curve,
+    plot_score_distribution,
+    plot_epoch_accuracy,
+    plot_cluster_precision,
+    plot_cluster_recall,
+    plot_cluster_f1,
+)
 from shiny import App, Inputs, reactive, render, ui
 import os
 
-# Import models' performance 
+# Import models' performance
 app_dir = Path(__file__).parent
 scores = pd.read_csv(app_dir / "scores.csv")
 
@@ -36,7 +44,10 @@ average_metrics = {
     "Precision": sum(labmodel["Precision"] for labmodel in labmodels) / len(labmodels),
     "Recall": sum(labmodel["Recall"] for labmodel in labmodels) / len(labmodels),
     "F1 Score": sum(labmodel["F1 Score"] for labmodel in labmodels) / len(labmodels),
-    "Adjusted Rand Index": sum(labmodel["Adjusted Rand Index"] for labmodel in labmodels) / len(labmodels)
+    "Adjusted Rand Index": sum(
+        labmodel["Adjusted Rand Index"] for labmodel in labmodels
+    )
+    / len(labmodels),
 }
 
 # Create DataFrame from average_metrics
@@ -53,25 +64,36 @@ app_ui = ui.page_navbar(
     ui.nav_panel(
         "Model Performance",
         ui.navset_card_underline(
-            ui.nav_panel("Overall", 
+            ui.nav_panel(
+                "Overall",
                 [
                     ui.navset_card_underline(
                         ui.nav_panel("Model Accuracy", ui.output_plot("accuracy_plot")),
-                        ui.nav_panel("Overall performance", ui.output_data_frame("overall_table")),
-                                            )
-                ]
-                         ),
-            ui.nav_panel("By Clsuters", 
+                        ui.nav_panel(
+                            "Overall performance", ui.output_data_frame("overall_table")
+                        ),
+                    )
+                ],
+            ),
+            ui.nav_panel(
+                "By Clsuters",
                 [
                     ui.navset_card_underline(
-                        ui.nav_panel("Precision per Cluster", ui.output_plot("clusters_precision_plot")),
-                        ui.nav_panel("Recall per Cluster", ui.output_plot("clusters_recall_plot")),
-                        ui.nav_panel("F1 Score per Cluster", ui.output_plot("clusters_f1_plot"))
-                                            )
-                ]
+                        ui.nav_panel(
+                            "Precision per Cluster",
+                            ui.output_plot("clusters_precision_plot"),
                         ),
+                        ui.nav_panel(
+                            "Recall per Cluster", ui.output_plot("clusters_recall_plot")
+                        ),
+                        ui.nav_panel(
+                            "F1 Score per Cluster", ui.output_plot("clusters_f1_plot")
+                        ),
+                    )
+                ],
+            ),
             title="Evaluation Metrics",
-        )
+        ),
     ),
     ui.nav_panel(
         "Image Prediction",
@@ -89,11 +111,7 @@ app_ui = ui.page_navbar(
         ui.input_select(
             "Models",
             "Models",
-            choices=[
-                "Basic CNN (Lab Model)",
-                "ResNet18",
-                "ResNet50"
-            ],
+            choices=["Basic CNN (Lab Model)", "ResNet18", "ResNet50"],
         ),
         ui.input_select(
             "transformation",
@@ -104,19 +122,14 @@ app_ui = ui.page_navbar(
                 "Random Rotation",
                 "Normalisation & Random Flip",
                 "Normalisation & Random Rotation",
-                "Normalisation & Random Flip & Random Rotation"
+                "Normalisation & Random Flip & Random Rotation",
             ],
         ),
         ui.input_select(
             "masking",
             "Masking techniques",
-            choices=[
-                "No masking",
-                "Cell boundary",
-                "Canny contour",
-                "Gaussian filter"
-            ],
-        )
+            choices=["No masking", "Cell boundary", "Canny contour", "Gaussian filter"],
+        ),
     ),
     id="tabs",
     title="Cell Images Classification",
@@ -124,9 +137,7 @@ app_ui = ui.page_navbar(
 )
 
 
-
 def server(input: Inputs):
-
     @render.data_frame
     def overall_table():
         labmodels = [labmodel_1, labmodel_2, labmodel_3, labmodel_4]
@@ -138,7 +149,7 @@ def server(input: Inputs):
                 "Precision": labmodel["Precision"],
                 "Recall": labmodel["Recall"],
                 "F1 Score": labmodel["F1 Score"],
-                "Adjusted Rand Index": labmodel["Adjusted Rand Index"]
+                "Adjusted Rand Index": labmodel["Adjusted Rand Index"],
             }
             metrics_list.append(metrics)
         df = pd.DataFrame(metrics_list)
@@ -164,8 +175,10 @@ def server(input: Inputs):
         num_repeats = 1
         script_dir = os.path.dirname(os.path.realpath("__file__"))
         folder_path = os.path.join(script_dir, "LabModel")
-        plot_cluster_precision(folder_path, num_folds=num_splits, num_repeats=num_repeats)
-    
+        plot_cluster_precision(
+            folder_path, num_folds=num_splits, num_repeats=num_repeats
+        )
+
     @render.plot
     def clusters_recall_plot():
         num_splits = 4
@@ -173,7 +186,7 @@ def server(input: Inputs):
         script_dir = os.path.dirname(os.path.realpath("__file__"))
         folder_path = os.path.join(script_dir, "LabModel")
         plot_cluster_recall(folder_path, num_folds=num_splits, num_repeats=num_repeats)
-    
+
     @render.plot
     def clusters_f1_plot():
         num_splits = 4
@@ -181,7 +194,7 @@ def server(input: Inputs):
         script_dir = os.path.dirname(os.path.realpath("__file__"))
         folder_path = os.path.join(script_dir, "LabModel")
         plot_cluster_f1(folder_path, num_folds=num_splits, num_repeats=num_repeats)
-    
+
     @reactive.calc()
     def dat() -> pd.DataFrame:
         return scores.loc[scores["account"] == input.account()]
