@@ -8,7 +8,7 @@ from PIL import Image
 import numpy as np
 
 
-APP_DIR_PATH = Path(__file__).parent.parent
+APP_DIR_PATH = Path(__file__).parent
 FOLD_DIR = 'Repeat_1_Fold_{}'
 EPOCH_DIR = 'Epoch_{}'
 NUM_FOLDS = 4
