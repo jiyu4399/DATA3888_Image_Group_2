@@ -13,7 +13,7 @@ from plots import (
     plot_cluster_f1,
 )
 from helper import get_directory_name, MODELS, TRANSFORMATIONS, MASKINGS, METRICS, APP_DIR_PATH, FOLD_DIR, FOLDS, METRICS_FILE, NUM_FOLDS, NUM_REPEATS
-
+import matplotlib.cm as cm
 
 # ## Lab Model (3 transformation techniques)
 # labmodel_1_path = os.path.join(app_dir, "LabModel_phi/Repeat_1_Fold_1/evaluation_metrics.json")
@@ -49,7 +49,95 @@ from helper import get_directory_name, MODELS, TRANSFORMATIONS, MASKINGS, METRIC
 app_ui = ui.page_navbar(
     ui.nav_spacer(),
     ui.nav_panel(
-        "Model Performance",
+        "ViT Performance",
+        ui.navset_card_underline(
+            ui.nav_panel(
+                "Description",
+                ui.layout_columns(
+                    ui.card(
+                        ui.markdown("""
+                            ## Application Description
+                            This application provides an interface to explore stock prices and 
+                            performance metrics by cluster. You can navigate through different tabs 
+                            to see overall performance and detailed cluster-specific metrics.
+                            
+                            - **Overall**: View overall stock price information and history.
+                            - **By Cluster**: Analyze precision, recall, and F1 score for different clusters.
+                            - **Description**: Read about the application and how to use it.
+                        """),
+                        full_screen=True,
+                    ),
+                ),
+            ),
+            ui.nav_panel(
+                "Overall",
+                ui.layout_column_wrap(
+                    ui.value_box(
+                        "Overall Accuracy",
+                        ui.output_text("comp_avg_accuracy"),
+                        theme="gradient-yellow-orange",
+                    ),
+                    ui.value_box(
+                        "Overall Precision",
+                        ui.output_text("comp_avg_precision"),
+                        theme="gradient-yellow-orange",
+                    ),
+                    ui.value_box(
+                        "Overall Recall",
+                        ui.output_text("comp_avg_recall"),
+                        theme="gradient-yellow-orange",
+                    ),
+                    ui.value_box(
+                        "Overall F1 Score",
+                        ui.output_text("comp_avg_f1_score"),
+                        theme="gradient-yellow-orange",
+                    ),
+                    fill=True,
+                ),
+                ui.layout_columns(
+                    ui.card(
+                        ui.card_header("Learning curve"),
+                        ui.output_plot("comp_accuracy_plot"),
+                        full_screen=True,
+                    ),
+                    ui.card(
+                        ui.card_header("ViT vs ResNet18"),
+                        ui.output_data_frame("Vit_ResNet18_table"),
+                    ),
+                    col_widths=[6, 6],
+                ),
+            ),
+            ui.nav_panel(
+                "By Cluster",
+                ui.navset_tab_card(
+                    ui.nav(
+                        "Cluster Precision",
+                        ui.card(
+                            ui.output_plot("comp_clusters_precision_plot"),
+                            full_screen=True,
+                        ),
+                    ),
+                    ui.nav(
+                        "Cluster Recall",
+                        ui.card(
+                            ui.output_plot("comp_clusters_recall_plot"),
+                            full_screen=True,
+                        ),
+                    ),
+                    ui.nav(
+                        "Cluster F1 Score",
+                        ui.card(
+                            ui.output_plot("comp_clusters_f1_plot"),
+                            full_screen=True,
+                        ),
+                    ),
+                ),
+            ),
+            title="Evaluation Metrics",
+        ),
+    ),
+    ui.nav_panel(
+        "CNN Model Performance",
         ui.layout_sidebar(
             ui.sidebar(
                 ui.input_select(
@@ -207,6 +295,7 @@ app_ui = ui.page_navbar(
 )
 
 
+
 def server(input: Inputs, output: Outputs, session: Session):
     ### --------- Dynamic dropdown -----------
         
@@ -353,7 +442,7 @@ def server(input: Inputs, output: Outputs, session: Session):
         folder_path = folder_path = os.path.join(APP_DIR_PATH, get_directory_name(input.model(), input.transformation(), input.masking()))
         plot_cluster_f1(folder_path, num_folds=num_splits, num_repeats=num_repeats)
 
-
 app = App(app_ui, server)
 if __name__ == "__main__":
     run_app("app_v2")
+
