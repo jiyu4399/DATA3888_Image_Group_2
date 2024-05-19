@@ -1,50 +1,50 @@
-from pathlib import Path
 import json
-from shiny import App, ui, run_app, Inputs, render, reactive
+from shiny import App, ui, run_app, Inputs, render, reactive, Outputs, Session
 import pandas as pd
 from faicons import icon_svg
 from shinywidgets import output_widget, render_plotly
 import os
 import faicons as fa
+from icecream import ic
 from plots import (
     plot_epoch_accuracy,
     plot_cluster_precision,
     plot_cluster_recall,
     plot_cluster_f1,
 )
+from helper import get_directory_name, MODELS, TRANSFORMATIONS, MASKINGS, METRICS, APP_DIR_PATH, FOLD_DIR, FOLDS, METRICS_FILE, NUM_FOLDS, NUM_REPEATS
 
-app_dir = Path(__file__).parent
-## Lab Model (3 transformation techniques)
-labmodel_1_path = app_dir / "LabModel/Repeat_1_Fold_1/evaluation_metrics.json"
-labmodel_2_path = app_dir / "LabModel/Repeat_1_Fold_2/evaluation_metrics.json"
-labmodel_3_path = app_dir / "LabModel/Repeat_1_Fold_3/evaluation_metrics.json"
-labmodel_4_path = app_dir / "LabModel/Repeat_1_Fold_4/evaluation_metrics.json"
 
-with open(labmodel_1_path) as f:
-    labmodel_1 = json.load(f)
+# ## Lab Model (3 transformation techniques)
+# labmodel_1_path = os.path.join(app_dir, "LabModel_phi/Repeat_1_Fold_1/evaluation_metrics.json")
+# labmodel_2_path = os.path.join(app_dir, "LabModel_phi/Repeat_1_Fold_2/evaluation_metrics.json")
+# labmodel_3_path = os.path.join(app_dir, "LabModel_phi/Repeat_1_Fold_3/evaluation_metrics.json")
+# labmodel_4_path = os.path.join(app_dir, "LabModel_phi/Repeat_1_Fold_4/evaluation_metrics.json")
 
-with open(labmodel_2_path) as f:
-    labmodel_2 = json.load(f)
+# with open(labmodel_1_path) as f:
+#     labmodel_1 = json.load(f)
 
-with open(labmodel_3_path) as f:
-    labmodel_3 = json.load(f)
+# with open(labmodel_2_path) as f:
+#     labmodel_2 = json.load(f)
 
-with open(labmodel_4_path) as f:
-    labmodel_4 = json.load(f)
+# with open(labmodel_3_path) as f:
+#     labmodel_3 = json.load(f)
 
-labmodels = [labmodel_1, labmodel_2, labmodel_3, labmodel_4]
+# with open(labmodel_4_path) as f:
+#     labmodel_4 = json.load(f)
+
+# labmodels = [labmodel_1, labmodel_2, labmodel_3, labmodel_4]
 
 # Calculate average values for each metric
-average_metrics = {
-    "Accuracy": sum(labmodel["Accuracy"] for labmodel in labmodels) / len(labmodels),
-    "Precision": sum(labmodel["Precision"] for labmodel in labmodels) / len(labmodels),
-    "Recall": sum(labmodel["Recall"] for labmodel in labmodels) / len(labmodels),
-    "F1 Score": sum(labmodel["F1 Score"] for labmodel in labmodels) / len(labmodels),
-}
+# average_metrics = {
+#     "Accuracy": sum(labmodel["Accuracy"] for labmodel in labmodels) / len(labmodels),
+#     "Precision": sum(labmodel["Precision"] for labmodel in labmodels) / len(labmodels),
+#     "Recall": sum(labmodel["Recall"] for labmodel in labmodels) / len(labmodels),
+#     "F1 Score": sum(labmodel["F1 Score"] for labmodel in labmodels) / len(labmodels),
+# }
 
 # Create DataFrame from average_metrics
-df = pd.DataFrame.from_records([average_metrics])
-
+# df = pd.DataFrame.from_records([average_metrics])
 
 app_ui = ui.page_navbar(
     ui.nav_spacer(),
@@ -53,31 +53,19 @@ app_ui = ui.page_navbar(
         ui.layout_sidebar(
             ui.sidebar(
                 ui.input_select(
+                    "model",
                     "Models",
-                    "Models",
-                    choices=["Basic CNN (Lab Model)", "ResNet18", "ResNet50"],
+                    choices=MODELS,
                 ),
                 ui.input_select(
                     "transformation",
                     "Transformation",
-                    choices=[
-                        "Normalisation",
-                        "Random Flip",
-                        "Random Rotation",
-                        "Normalisation & Random Flip",
-                        "Normalisation & Random Rotation",
-                        "Normalisation & Random Flip & Random Rotation",
-                    ],
+                    choices=[],
                 ),
                 ui.input_select(
                     "masking",
                     "Masking techniques",
-                    choices=[
-                        "No masking",
-                        "Cell boundary",
-                        "Canny contour",
-                        "Gaussian filter",
-                    ],
+                    choices=[],
                 ),
             ),
             ui.navset_card_underline(
@@ -135,7 +123,7 @@ app_ui = ui.page_navbar(
                             ui.input_select(
                                 "selected_metric",
                                 "Select Metric",
-                                choices=["Accuracy", "Precision", "Recall", "F1 Score"],
+                                choices=METRICS,
                             ),
                             ui.output_data_frame("overall_table"),
                         ),
@@ -191,29 +179,17 @@ app_ui = ui.page_navbar(
                 ui.input_select(
                     "predict_model",
                     "Models",
-                    choices=["Basic CNN (Lab Model)", "ResNet18", "ResNet50"],
+                    choices=MODELS,
                 ),
                 ui.input_select(
                     "predict_transformation",
                     "Transformation",
-                    choices=[
-                        "Normalisation",
-                        "Random Flip",
-                        "Random Rotation",
-                        "Normalisation & Random Flip",
-                        "Normalisation & Random Rotation",
-                        "Normalisation & Random Flip & Random Rotation",
-                    ],
+                    choices=TRANSFORMATIONS,
                 ),
                 ui.input_select(
                     "predict_masking",
                     "Masking techniques",
-                    choices=[
-                        "No masking",
-                        "Cell boundary",
-                        "Canny contour",
-                        "Gaussian filter",
-                    ],
+                    choices=MASKINGS,
                 ),
                 ui.input_action_button("predict", "Predict"),
             ),
@@ -231,20 +207,75 @@ app_ui = ui.page_navbar(
 )
 
 
-def server(input: Inputs):
+def server(input: Inputs, output: Outputs, session: Session):
+    ### --------- Dynamic dropdown -----------
+        
+    @reactive.Calc
+    def transformations():
+        model = input.model()
+        match model:
+            case 'Basic CNN (Lab Model)':  # LabModel
+                return TRANSFORMATIONS
+            case _:
+                return ['Normalisation']
+            
+    @reactive.Calc
+    def maskings():
+        model = input.model()
+        transformation = input.transformation()
+        match model:
+            case 'Basic CNN (Lab Model)':
+                match transformation:
+                    case 'Normalisation, Random Flip & Random Rotation':
+                        return MASKINGS
+                    case _:
+                        return ['No Masking']
+            case 'ResNet18':
+                match transformation:
+                    case 'Normalisation':
+                        return MASKINGS
+                    case _:
+                        return ['No Masking']
+            case 'ResNet50':
+                match transformation:
+                    case 'Normalisation':
+                        return MASKINGS
+                    case _:
+                        return ['No Masking']
+            case _:
+                return ['No Masking']
+
+            
+
+    # Update the choices for the transformation dropdown based on the model dropdown
+    @reactive.Effect
+    @reactive.event(input.model)
+    def _update_transformation_dropdown():
+        ui.update_select("transformation", choices=transformations())
+        # ui.update_select("masking", choices=['No Masking'])
+
+    @reactive.Effect
+    @reactive.event(input.transformation)
+    def _update_masking_dropdown():
+        ui.update_select("masking", choices=maskings())
+
+    ### --------------------------------------
     @render.data_frame
     def overall_table():
-        labmodels = [labmodel_1, labmodel_2, labmodel_3, labmodel_4]
+        model_dir = get_directory_name(input.model(), input.transformation(), input.masking())
+        # labmodels = [labmodel_1, labmodel_2, labmodel_3, labmodel_4]
         metrics_list = []
-        for i, labmodel in enumerate(labmodels, start=1):
-            metrics = {
-                "Iteration": f"Folder {i}",
-                "Accuracy": labmodel["Accuracy"],
-                "Precision": labmodel["Precision"],
-                "Recall": labmodel["Recall"],
-                "F1 Score": labmodel["F1 Score"],
-            }
-            metrics_list.append(metrics)
+        for fold in FOLDS:
+            with open(os.path.join(APP_DIR_PATH, model_dir, FOLD_DIR.format(fold), METRICS_FILE)) as f:
+                data = json.load(f)
+                metrics = {
+                    "Iteration": f"Folder {fold}",
+                    "Accuracy": data["Accuracy"],
+                    "Precision": data["Precision"],
+                    "Recall": data["Recall"],
+                    "F1 Score": data["F1 Score"],
+                }
+                metrics_list.append(metrics)
         df = pd.DataFrame(metrics_list)
 
         # Transform the DataFrame to make it vertical
@@ -259,28 +290,27 @@ def server(input: Inputs):
 
     @render.plot
     def accuracy_plot():
-        num_splits = 4
-        num_repeats = 1
-        script_dir = os.path.dirname(os.path.realpath("__file__"))
-        folder_path = os.path.join(script_dir, "LabModel")
+        folder_path = os.path.join(APP_DIR_PATH, get_directory_name(input.model(), input.transformation(), input.masking()))
         return plot_epoch_accuracy(
-            folder_path, num_folds=num_splits, num_repeats=num_repeats
+            folder_path, num_folds=NUM_FOLDS, num_repeats=NUM_REPEATS
         )
 
     @reactive.Calc
     def avg_metrics():
+        model_dir = get_directory_name(input.model(), input.transformation(), input.masking())
+        fold_models = [json.load(open(os.path.join(APP_DIR_PATH, model_dir, FOLD_DIR.format(fold), METRICS_FILE))) for fold in FOLDS]
         return {
             "Accuracy": round(
-                sum(labmodel["Accuracy"] for labmodel in labmodels) / len(labmodels), 4
+                sum(model["Accuracy"] for model in fold_models) / len(fold_models), 4
             ),
             "Precision": round(
-                sum(labmodel["Precision"] for labmodel in labmodels) / len(labmodels), 4
+                sum(model["Precision"] for model in fold_models) / len(fold_models), 4
             ),
             "Recall": round(
-                sum(labmodel["Recall"] for labmodel in labmodels) / len(labmodels), 4
+                sum(model["Recall"] for model in fold_models) / len(fold_models), 4
             ),
             "F1 Score": round(
-                sum(labmodel["F1 Score"] for labmodel in labmodels) / len(labmodels), 4
+                sum(model["F1 Score"] for model in fold_models) / len(fold_models), 4
             ),
         }
 
@@ -304,8 +334,7 @@ def server(input: Inputs):
     def clusters_precision_plot():
         num_splits = 4
         num_repeats = 1
-        script_dir = os.path.dirname(os.path.realpath("__file__"))
-        folder_path = os.path.join(script_dir, "LabModel")
+        folder_path = folder_path = os.path.join(APP_DIR_PATH, get_directory_name(input.model(), input.transformation(), input.masking()))
         plot_cluster_precision(
             folder_path, num_folds=num_splits, num_repeats=num_repeats
         )
@@ -314,19 +343,17 @@ def server(input: Inputs):
     def clusters_recall_plot():
         num_splits = 4
         num_repeats = 1
-        script_dir = os.path.dirname(os.path.realpath("__file__"))
-        folder_path = os.path.join(script_dir, "LabModel")
+        folder_path = folder_path = os.path.join(APP_DIR_PATH, get_directory_name(input.model(), input.transformation(), input.masking()))
         plot_cluster_recall(folder_path, num_folds=num_splits, num_repeats=num_repeats)
 
     @render.plot
     def clusters_f1_plot():
         num_splits = 4
         num_repeats = 1
-        script_dir = os.path.dirname(os.path.realpath("__file__"))
-        folder_path = os.path.join(script_dir, "LabModel")
+        folder_path = folder_path = os.path.join(APP_DIR_PATH, get_directory_name(input.model(), input.transformation(), input.masking()))
         plot_cluster_f1(folder_path, num_folds=num_splits, num_repeats=num_repeats)
 
 
 app = App(app_ui, server)
 if __name__ == "__main__":
-    run_app("try")
+    run_app("app_v2")
