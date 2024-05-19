@@ -145,7 +145,7 @@ def visualize_epoch_accuracies(average_accuracies):
     plt.xlabel("Epoch")
     plt.ylabel("Accuracy")
     plt.title("Average Training and Validation Accuracy per Epoch")
-    plt.legend(loc="center left", bbox_to_anchor=(1, 0.5))
+    plt.legend(loc="upper center", bbox_to_anchor=(0.5, -0.2), ncol=2, fontsize=9)
     plt.grid(True)
     plt.tight_layout()
     # plt.show()

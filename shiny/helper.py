@@ -1,6 +1,10 @@
 from icecream import ic
 from pathlib import Path
 import os
+import torch
+from models import LabModel, ModifiedResNet18, ModifiedResNet50
+from PIL import Image
+import numpy as np
 
 
 APP_DIR_PATH = Path(__file__).parent.parent
@@ -46,3 +50,27 @@ def get_directory_name(model: str, transformation: str, masking: str) -> str:
     result = f'{model}_{transformation_names[transformation]}_{masking_names[masking]}'
     ic(result)
     return result
+
+def predict_cluster(model, weights, image_info):
+    ic(model, weights, image_info)
+    match model:
+        case 'Basic CNN (Lab Model)':
+            model = LabModel()
+        case 'ResNet18':
+            model = ModifiedResNet18()
+        case 'ResNet50':
+            model = ModifiedResNet50()
+        case _:
+            return 'Invalid model name for prediction'
+        
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model.load_state_dict(torch.load(weights, map_location=device))
+    model.eval()
+    image = np.array(Image.open(image_info[0]['datapath']).convert("L"))
+    image_tensor = torch.tensor(image, dtype=torch.float32) / 255.0
+    image_tensor = torch.unsqueeze(image_tensor, 0).to(device)
+    ic(image_tensor.shape)
+    with torch.no_grad():
+        pred = model(image_tensor)
+    ic(pred)
+

@@ -6,45 +6,9 @@ from shinywidgets import output_widget, render_plotly
 import os
 import faicons as fa
 from icecream import ic
-from plots import (
-    plot_epoch_accuracy,
-    plot_cluster_precision,
-    plot_cluster_recall,
-    plot_cluster_f1,
-)
-from helper import get_directory_name, MODELS, TRANSFORMATIONS, MASKINGS, METRICS, APP_DIR_PATH, FOLD_DIR, FOLDS, METRICS_FILE, NUM_FOLDS, NUM_REPEATS
+from plots import *
+from helper import *
 
-
-# ## Lab Model (3 transformation techniques)
-# labmodel_1_path = os.path.join(app_dir, "LabModel_phi/Repeat_1_Fold_1/evaluation_metrics.json")
-# labmodel_2_path = os.path.join(app_dir, "LabModel_phi/Repeat_1_Fold_2/evaluation_metrics.json")
-# labmodel_3_path = os.path.join(app_dir, "LabModel_phi/Repeat_1_Fold_3/evaluation_metrics.json")
-# labmodel_4_path = os.path.join(app_dir, "LabModel_phi/Repeat_1_Fold_4/evaluation_metrics.json")
-
-# with open(labmodel_1_path) as f:
-#     labmodel_1 = json.load(f)
-
-# with open(labmodel_2_path) as f:
-#     labmodel_2 = json.load(f)
-
-# with open(labmodel_3_path) as f:
-#     labmodel_3 = json.load(f)
-
-# with open(labmodel_4_path) as f:
-#     labmodel_4 = json.load(f)
-
-# labmodels = [labmodel_1, labmodel_2, labmodel_3, labmodel_4]
-
-# Calculate average values for each metric
-# average_metrics = {
-#     "Accuracy": sum(labmodel["Accuracy"] for labmodel in labmodels) / len(labmodels),
-#     "Precision": sum(labmodel["Precision"] for labmodel in labmodels) / len(labmodels),
-#     "Recall": sum(labmodel["Recall"] for labmodel in labmodels) / len(labmodels),
-#     "F1 Score": sum(labmodel["F1 Score"] for labmodel in labmodels) / len(labmodels),
-# }
-
-# Create DataFrame from average_metrics
-# df = pd.DataFrame.from_records([average_metrics])
 
 app_ui = ui.page_navbar(
     ui.nav_spacer(),
@@ -161,12 +125,15 @@ app_ui = ui.page_navbar(
         ),
     ),
     ui.nav_panel(
+        "Best Models",
+    ),
+    ui.nav_panel(
         "Image Prediction",
         ui.layout_columns(
             ui.card(
                 ui.card_header("Upload Image"),
                 ui.input_file(
-                    "file1",
+                    "predict_image",
                     "Choose an image to upload",
                     accept=["image/png"],
                     multiple=False,
@@ -184,18 +151,18 @@ app_ui = ui.page_navbar(
                 ui.input_select(
                     "predict_transformation",
                     "Transformation",
-                    choices=TRANSFORMATIONS,
+                    choices=[],
                 ),
                 ui.input_select(
                     "predict_masking",
                     "Masking techniques",
-                    choices=MASKINGS,
+                    choices=[],
                 ),
-                ui.input_action_button("predict", "Predict"),
+                ui.input_action_button("predict_button", "Predict"),
             ),
             ui.card(
                 ui.card_header("Prediction Results"),
-                ui.output_text_verbatim("prediction_results"),
+                ui.output_text_verbatim("prediction_results", placeholder=False),
             ),
             col_widths=[4, 4, 4],
         ),
@@ -208,7 +175,7 @@ app_ui = ui.page_navbar(
 
 
 def server(input: Inputs, output: Outputs, session: Session):
-    ### --------- Dynamic dropdown -----------
+    ### ----------- Dynamic events -------------
         
     @reactive.Calc
     def transformations():
@@ -217,7 +184,7 @@ def server(input: Inputs, output: Outputs, session: Session):
             case 'Basic CNN (Lab Model)':  # LabModel
                 return TRANSFORMATIONS
             case _:
-                return ['Normalisation']
+                return ['Normalisation, Random Flip & Random Rotation']
             
     @reactive.Calc
     def maskings():
@@ -232,20 +199,19 @@ def server(input: Inputs, output: Outputs, session: Session):
                         return ['No Masking']
             case 'ResNet18':
                 match transformation:
-                    case 'Normalisation':
+                    case 'Normalisation, Random Flip & Random Rotation':
                         return MASKINGS
                     case _:
                         return ['No Masking']
             case 'ResNet50':
                 match transformation:
-                    case 'Normalisation':
+                    case 'Normalisation, Random Flip & Random Rotation':
                         return MASKINGS
                     case _:
                         return ['No Masking']
             case _:
                 return ['No Masking']
 
-            
 
     # Update the choices for the transformation dropdown based on the model dropdown
     @reactive.Effect
@@ -258,6 +224,68 @@ def server(input: Inputs, output: Outputs, session: Session):
     @reactive.event(input.transformation)
     def _update_masking_dropdown():
         ui.update_select("masking", choices=maskings())
+
+
+    @reactive.Calc
+    def predict_transformations():
+        model = input.predict_model()
+        match model:
+            case 'Basic CNN (Lab Model)':  # LabModel
+                return TRANSFORMATIONS
+            case _:
+                return ['Normalisation, Random Flip & Random Rotation']
+            
+    @reactive.Calc
+    def predict_maskings():
+        model = input.predict_model()
+        transformation = input.predict_transformation()
+        match model:
+            case 'Basic CNN (Lab Model)':
+                match transformation:
+                    case 'Normalisation, Random Flip & Random Rotation':
+                        return MASKINGS
+                    case _:
+                        return ['No Masking']
+            case 'ResNet18':
+                match transformation:
+                    case 'Normalisation, Random Flip & Random Rotation':
+                        return MASKINGS
+                    case _:
+                        return ['No Masking']
+            case 'ResNet50':
+                match transformation:
+                    case 'Normalisation, Random Flip & Random Rotation':
+                        return MASKINGS
+                    case _:
+                        return ['No Masking']
+            case _:
+                return ['No Masking']
+            
+
+    @reactive.Effect
+    @reactive.event(input.predict_model)
+    def _update_predict_transformation_dropdown():
+        ui.update_select("predict_transformation", choices=predict_transformations())
+        # ui.update_select("masking", choices=['No Masking'])
+
+    @reactive.Effect
+    @reactive.event(input.predict_transformation)
+    def _update_predict_masking_dropdown():
+        ui.update_select("predict_masking", choices=predict_maskings())
+
+    @render.text
+    # @reactive.Effect
+    @reactive.event(input.predict_button)
+    def prediction_results():
+        model = input.predict_model()
+        transformation = input.predict_transformation()
+        masking = input.predict_masking()
+        image = input.predict_image()
+        if not image:
+            return 'Please input an image first.'
+        weights_file_path = os.path.join(APP_DIR_PATH, get_directory_name(model, transformation, masking), 'model.pth')
+        predict_cluster(model, weights_file_path, image)
+
 
     ### --------------------------------------
     @render.data_frame
