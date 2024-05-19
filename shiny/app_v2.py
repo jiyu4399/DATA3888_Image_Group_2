@@ -1,5 +1,6 @@
 import json
 from shiny import App, ui, run_app, Inputs, render, reactive, Outputs, Session
+from shiny.types import ImgData
 import pandas as pd
 from faicons import icon_svg
 from shinywidgets import output_widget, render_plotly
@@ -8,100 +9,12 @@ import faicons as fa
 from icecream import ic
 from plots import *
 from helper import *
-
+from text import DESCRIPTION
 
 app_ui = ui.page_navbar(
     ui.nav_spacer(),
     ui.nav_panel(
-        "ViT Performance",
-        ui.navset_card_underline(
-            ui.nav_panel(
-                "Description",
-                ui.layout_columns(
-                    ui.card(
-                        ui.markdown("""
-                            ## Application Description
-                            This application provides an interface to explore stock prices and 
-                            performance metrics by cluster. You can navigate through different tabs 
-                            to see overall performance and detailed cluster-specific metrics.
-                            
-                            - **Overall**: View overall stock price information and history.
-                            - **By Cluster**: Analyze precision, recall, and F1 score for different clusters.
-                            - **Description**: Read about the application and how to use it.
-                        """),
-                        full_screen=True,
-                    ),
-                ),
-            ),
-            ui.nav_panel(
-                "Overall",
-                ui.layout_column_wrap(
-                    ui.value_box(
-                        "Overall Accuracy",
-                        ui.output_text("comp_avg_accuracy"),
-                        theme="gradient-yellow-orange",
-                    ),
-                    ui.value_box(
-                        "Overall Precision",
-                        ui.output_text("comp_avg_precision"),
-                        theme="gradient-yellow-orange",
-                    ),
-                    ui.value_box(
-                        "Overall Recall",
-                        ui.output_text("comp_avg_recall"),
-                        theme="gradient-yellow-orange",
-                    ),
-                    ui.value_box(
-                        "Overall F1 Score",
-                        ui.output_text("comp_avg_f1_score"),
-                        theme="gradient-yellow-orange",
-                    ),
-                    fill=True,
-                ),
-                ui.layout_columns(
-                    ui.card(
-                        ui.card_header("Learning curve"),
-                        ui.output_plot("comp_accuracy_plot"),
-                        full_screen=True,
-                    ),
-                    ui.card(
-                        ui.card_header("ViT vs ResNet18"),
-                        ui.output_data_frame("Vit_ResNet18_table"),
-                    ),
-                    col_widths=[6, 6],
-                ),
-            ),
-            ui.nav_panel(
-                "By Cluster",
-                ui.navset_tab_card(
-                    ui.nav(
-                        "Cluster Precision",
-                        ui.card(
-                            ui.output_plot("comp_clusters_precision_plot"),
-                            full_screen=True,
-                        ),
-                    ),
-                    ui.nav(
-                        "Cluster Recall",
-                        ui.card(
-                            ui.output_plot("comp_clusters_recall_plot"),
-                            full_screen=True,
-                        ),
-                    ),
-                    ui.nav(
-                        "Cluster F1 Score",
-                        ui.card(
-                            ui.output_plot("comp_clusters_f1_plot"),
-                            full_screen=True,
-                        ),
-                    ),
-                ),
-            ),
-            title="Evaluation Metrics",
-        ),
-    ),
-    ui.nav_panel(
-        "CNN Model Performance",
+        "CNN Models",
         ui.layout_sidebar(
             ui.sidebar(
                 ui.input_select(
@@ -125,16 +38,7 @@ app_ui = ui.page_navbar(
                     "Description",
                     ui.layout_columns(
                         ui.card(
-                            ui.markdown("""
-                                ## Application Description
-                                This application provides an interface to explore stock prices and 
-                                performance metrics by cluster. You can navigate through different tabs 
-                                to see overall performance and detailed cluster-specific metrics.
-                                
-                                - **Overall**: View overall stock price information and history.
-                                - **By Cluster**: Analyze precision, recall, and F1 score for different clusters.
-                                - **Description**: Read about the application and how to use it.
-                            """),
+                            ui.markdown(DESCRIPTION),
                             full_screen=True,
                         ),
                     ),
@@ -153,7 +57,7 @@ app_ui = ui.page_navbar(
                             theme="gradient-yellow-orange",
                         ),
                         ui.value_box(
-                            "Overall Recall",
+                            "Ovearall Recall",
                             ui.output_text("avg_recall"),
                             theme="gradient-yellow-orange",
                         ),
@@ -213,16 +117,103 @@ app_ui = ui.page_navbar(
         ),
     ),
     ui.nav_panel(
-        "Best Models",
+        "Best Model",
+        ui.navset_card_underline(
+            ui.nav_panel(
+                "Overall",
+                ui.layout_column_wrap(
+                    ui.value_box(
+                        "Best Accuracy",
+                        ui.div(
+                            ui.output_text("comp_accuracy"),
+                            style="font-size: 22px; white-space: pre-wrap; margin-top: -20px;"
+                        ),
+                        theme="gradient-yellow-orange",
+                    ),
+                    ui.value_box(
+                        "Best Precision",
+                        ui.div(
+                            ui.output_text("comp_precision"),
+                            style="font-size: 22px; white-space: pre-wrap; margin-top: -20px;"
+                        ),
+                        theme="gradient-yellow-orange",
+                    ),
+                    ui.value_box(
+                        "Best Recall",
+                        ui.div(
+                            ui.output_text("comp_recall"),
+                            style="font-size: 22px; white-space: pre-wrap; margin-top: -20px;"
+                        ),
+                        theme="gradient-yellow-orange",
+                    ),
+                    ui.value_box(
+                        "Best F1 Score",
+                        ui.div(
+                            ui.output_text("comp_f1_score"),
+                            style="font-size: 22px; white-space: pre-wrap; margin-top: -20px;"
+                        ),
+                        theme="gradient-yellow-orange",
+                    ),
+                    fill=True,
+                ),
+                ui.layout_columns(
+                    ui.card(
+                        ui.card_header("Learning curve"),
+                        ui.output_plot("comp_accuracy_plot"),
+                        full_screen=True,
+                    ),
+                    ui.card(
+                        ui.card_header("ViT vs ResNet18"),
+                        ui.input_select(
+                                "selected_vit_metric",
+                                "Select Metric",
+                                choices=METRICS,
+                        ),
+                        ui.output_data_frame("Vit_ResNet18_table"),
+                    ),
+                    col_widths=[6, 6],
+                ),
+            ),
+            ui.nav_panel(
+                "By Cluster",
+                ui.navset_tab_card(
+                    ui.nav(
+                        "Cluster Precision",
+                        ui.card(
+                            ui.output_plot("comp_clusters_precision_plot"),
+                            full_screen=True,
+                        ),
+                    ),
+                    ui.nav(
+                        "Cluster Recall",
+                        ui.card(
+                            ui.output_plot("comp_clusters_recall_plot"),
+                            full_screen=True,
+                        ),
+                    ),
+                    ui.nav(
+                        "Cluster F1 Score",
+                        ui.card(
+                            ui.output_plot("comp_clusters_f1_plot"),
+                            full_screen=True,
+                        ),
+                    ),
+                ),
+            ),
+            title="Evaluation Metrics",
+        ),
     ),
     ui.nav_panel(
         "Image Prediction",
         ui.layout_columns(
             ui.card(
                 ui.card_header("Upload Image"),
+                ui.markdown("""
+                    Please upload a cell image to test prediction. Images should be in PNG format.
+                """),
                 ui.input_file(
                     "predict_image",
-                    "Choose an image to upload",
+                    "Upload ↓",
                     accept=["image/png"],
                     multiple=False,
                 ),
@@ -231,6 +222,8 @@ app_ui = ui.page_navbar(
             ),
             ui.card(
                 ui.card_header("Model and Techniques"),
+                ui.markdown("""
+                    Similar to the 'CNN Model Performance' tab, this section lets us decide the model to test prediction on using the dropdowns below. We use a combination of **Model Architecture**, **Transformation**, and **Masking Technique**. After making selection (and uploading an image), press the button below.                """),
                 ui.input_select(
                     "predict_model",
                     "Models",
@@ -250,14 +243,18 @@ app_ui = ui.page_navbar(
             ),
             ui.card(
                 ui.card_header("Prediction Results"),
-                ui.output_text_verbatim("prediction_results", placeholder=False),
+                ui.markdown("""
+                    The format of results is a table with the cluster numbers and probabilities given by the model for each cluster. These are in descending order, which means the first entry in the table with the highest probability can be considered the final predicted cluster.
+                """),
+                # ui.output_text_verbatim("prediction_results", placeholder=False),
+                ui.output_data_frame("prediction_results"),
             ),
             col_widths=[4, 4, 4],
         ),
         {"class": "bslib-page-dashboard"},
     ),
     id="tabs",
-    title="Image2 - Shiny App",
+    title="Explore Learning",
     fillable=True,
 )
 
@@ -362,8 +359,15 @@ def server(input: Inputs, output: Outputs, session: Session):
     def _update_predict_masking_dropdown():
         ui.update_select("predict_masking", choices=predict_maskings())
 
-    @render.text
-    # @reactive.Effect
+    @render.image
+    @reactive.event(input.predict_image)
+    def uploaded_image():
+        image = input.predict_image()[0]
+        img: ImgData = {"src": image['datapath'], "width": "250px"}
+        return img
+
+
+    @render.data_frame
     @reactive.event(input.predict_button)
     def prediction_results():
         model = input.predict_model()
@@ -373,20 +377,25 @@ def server(input: Inputs, output: Outputs, session: Session):
         if not image:
             return 'Please input an image first.'
         weights_file_path = os.path.join(APP_DIR_PATH, get_directory_name(model, transformation, masking), 'model.pth')
-        predict_cluster(model, weights_file_path, image)
+        probabilities = predict_cluster(model, weights_file_path, image)
+        results = {i+1: prob for i, prob in enumerate(probabilities)}
+        results_sorted = dict(sorted(results.items(), key=lambda x: x[1], reverse=True))
+        df = pd.DataFrame(results_sorted.items(), columns=['Cluster', 'Probability'])
+        return df
+        
 
 
     ### --------------------------------------
     @render.data_frame
     def overall_table():
         model_dir = get_directory_name(input.model(), input.transformation(), input.masking())
-        # labmodels = [labmodel_1, labmodel_2, labmodel_3, labmodel_4]
+
         metrics_list = []
         for fold in FOLDS:
             with open(os.path.join(APP_DIR_PATH, model_dir, FOLD_DIR.format(fold), METRICS_FILE)) as f:
                 data = json.load(f)
                 metrics = {
-                    "Iteration": f"Folder {fold}",
+                    "Iteration": f"{fold}",
                     "Accuracy": data["Accuracy"],
                     "Precision": data["Precision"],
                     "Recall": data["Recall"],
@@ -404,6 +413,31 @@ def server(input: Inputs, output: Outputs, session: Session):
         selected_metric = input.selected_metric()
         df_filtered = df_vertical[df_vertical["Metric"] == selected_metric]
         return df_filtered
+
+
+    @render.data_frame
+    def Vit_ResNet18_table():
+        vit_dir = 'VIT_n_weightdecay'
+        resnet_dir = 'ResNet18_n_nodecay'
+        metric = input.selected_vit_metric()
+        metrics_list = []
+        for epoch in range(1, NUM_EPOCHS+1):
+            vit_file = open(os.path.join(APP_DIR_PATH, vit_dir, EPOCH_DIR.format(epoch), METRICS_FILE))
+            vit_data = json.load(vit_file)
+            resnet_file = open(os.path.join(APP_DIR_PATH, resnet_dir, EPOCH_DIR.format(epoch), METRICS_FILE))
+            resnet_data = json.load(resnet_file)
+            metrics_list.append((epoch, vit_data[metric], resnet_data[metric]))
+        df = pd.DataFrame(metrics_list, columns=['Epoch', 'VIT', 'ResNet18'])
+        return df
+
+    @render.plot
+    def comp_accuracy_plot():
+        vit_dir_path = os.path.join(APP_DIR_PATH, 'VIT_n_weightdecay')
+        resnet18_dir_path = os.path.join(APP_DIR_PATH, 'ResNet18_n_nodecay')
+        return plot_epoch_accuracy_for_two_models(
+            vit_dir_path,
+            resnet18_dir_path,
+        )
 
     @render.plot
     def accuracy_plot():
@@ -447,6 +481,39 @@ def server(input: Inputs, output: Outputs, session: Session):
     def avg_f1_score():
         return f"{avg_metrics()['F1 Score']}"
 
+
+    @reactive.Calc
+    def comp_metrics():
+        vit_dir = 'VIT_n_weightdecay'
+        resnet_dir = 'ResNet18_n_nodecay'
+        with open(os.path.join(APP_DIR_PATH, vit_dir, 'final_model', f'final_{METRICS_FILE}')) as f:
+            vit_data = json.load(f)
+        with open(os.path.join(APP_DIR_PATH, resnet_dir, 'final_model', f'final_{METRICS_FILE}')) as f:
+            resnet_data = json.load(f)
+
+        return {
+            "Accuracy": (round(vit_data['Accuracy'], 4), round(resnet_data['Accuracy'], 4)),
+            "Precision": (round(vit_data['Precision'], 4), round(resnet_data['Precision'], 4)),
+            "Recall": (round(vit_data['Recall'], 4), round(resnet_data['Recall'], 4)),
+            "F1 Score": (round(vit_data['F1 Score'], 4), round(resnet_data['F1 Score'], 4)),
+        }
+    
+    @render.text
+    def comp_accuracy():
+        return f"VIT: {comp_metrics()['Accuracy'][0]}\nResNet18: {comp_metrics()['Accuracy'][1]}"
+
+    @render.text
+    def comp_precision():
+        return f"VIT: {comp_metrics()['Precision'][0]}\nResNet18: {comp_metrics()['Precision'][1]}"
+
+    @render.text
+    def comp_recall():
+        return f"VIT: {comp_metrics()['Recall'][0]}\nResNet18: {comp_metrics()['Recall'][1]}"
+
+    @render.text
+    def comp_f1_score():
+        return f"VIT: {comp_metrics()['F1 Score'][0]}\nResNet18: {comp_metrics()['F1 Score'][1]}"
+
     @render.plot
     def clusters_precision_plot():
         num_splits = 4
@@ -469,6 +536,24 @@ def server(input: Inputs, output: Outputs, session: Session):
         num_repeats = 1
         folder_path = folder_path = os.path.join(APP_DIR_PATH, get_directory_name(input.model(), input.transformation(), input.masking()))
         plot_cluster_f1(folder_path, num_folds=num_splits, num_repeats=num_repeats)
+
+    @render.plot
+    def comp_clusters_precision_plot():
+        vit_dir_path = os.path.join(APP_DIR_PATH, 'VIT_n_weightdecay')
+        resnet18_dir_path = os.path.join(APP_DIR_PATH, 'ResNet18_n_nodecay')
+        return plot_cluster_metric_for_two_models(vit_dir_path, resnet18_dir_path, "Precision by cluster", "Average Precision by Cluster", "Precision")
+
+    @render.plot
+    def comp_clusters_recall_plot():
+        vit_dir_path = os.path.join(APP_DIR_PATH, 'VIT_n_weightdecay')
+        resnet18_dir_path = os.path.join(APP_DIR_PATH, 'ResNet18_n_nodecay')
+        return plot_cluster_metric_for_two_models(vit_dir_path, resnet18_dir_path, "Recall by cluster", "Average Recall by Cluster", "Recall")
+
+    @render.plot
+    def comp_clusters_f1_plot():
+        vit_dir_path = os.path.join(APP_DIR_PATH, 'VIT_n_weightdecay')
+        resnet18_dir_path = os.path.join(APP_DIR_PATH, 'ResNet18_n_nodecay')
+        return plot_cluster_metric_for_two_models(vit_dir_path, resnet18_dir_path, "F1 score by cluster", "Average F1 score by Cluster", "F1 Score")
 
 app = App(app_ui, server)
 if __name__ == "__main__":

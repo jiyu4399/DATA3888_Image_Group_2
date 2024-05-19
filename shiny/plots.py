@@ -16,6 +16,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import os
+from icecream import ic
 
 
 def plot_score_distribution(df: DataFrame):
@@ -223,3 +224,99 @@ def plot_cluster_f1(folder_path, num_folds=5, num_repeats=3):
     # Visualization
     if avg_f1_scores is not None:
         visualize_metrics(avg_f1_scores, "Average F1 Score by Cluster", "F1 Score")
+
+
+### --------------------------- VIT & ResNet18 ---------------------------
+
+def visualize_comp_accuracies(model1_accuracies, model2_accuracies, model1_label, model2_label):
+    epochs = range(1, 16)
+    plt.figure(figsize=(10, 5))
+    plt.plot(epochs, model1_accuracies, label=f'{model1_label} Accuracy', marker='o')
+    plt.plot(epochs, model2_accuracies, label=f'{model2_label} Accuracy', marker='x')
+    plt.xlabel('Epochs')
+    plt.ylabel('Accuracy')
+    plt.title('VIT and ResNet18 Accuracy over Epochs')
+    plt.legend()
+    plt.grid(True)
+    # plt.show()
+    plt.tight_layout()
+
+
+def visualize_comp_metrics(metrics1, metrics2, title, ylabel, model1_label, model2_label):
+    bar_width = 0.35
+    indices = np.arange(len(metrics1))
+    
+    plt.bar(indices, metrics1, bar_width, label=model1_label, color='blue')
+    plt.bar(indices + bar_width, metrics2, bar_width, label=model2_label, color='orange')
+    
+    plt.title(title)
+    plt.xlabel("Cluster Index")
+    plt.ylabel(ylabel)
+    plt.xticks(indices + bar_width / 2, indices)
+    plt.legend()
+    
+    # Adding value labels on top of each bar
+    for i in range(len(metrics1)):
+        plt.text(indices[i], metrics1[i], round(metrics1[i], 2), ha='center', va='bottom')
+        plt.text(indices[i] + bar_width, metrics2[i], round(metrics2[i], 2), ha='center', va='bottom')
+
+    plt.tight_layout()
+    # plt.show()
+
+def plot_epoch_accuracy_for_two_models(folder_path_model1, folder_path_model2, num_epochs=15):
+    all_epoch_accuracies_model1 = []
+    all_epoch_accuracies_model2 = []
+
+    # Load metrics for Model 1
+    for epoch in range(1, num_epochs + 1):
+        json_filepath = os.path.join(folder_path_model1, f"Epoch_{epoch}", "evaluation_metrics.json")
+        data = load_metrics(json_filepath)
+        if data:
+            all_epoch_accuracies_model1.append(data["Accuracy"])
+
+    # Load metrics for Model 2
+    for epoch in range(1, num_epochs + 1):
+        json_filepath = os.path.join(folder_path_model2, f"Epoch_{epoch}", "evaluation_metrics.json")
+        data = load_metrics(json_filepath)
+        if data:
+            all_epoch_accuracies_model2.append(data["Accuracy"])
+
+    # Calculate average accuracy for each model
+    avg_epoch_accuracies_model1 = (
+        np.mean(np.array(all_epoch_accuracies_model1), axis=0) if all_epoch_accuracies_model1 else []
+    )
+    avg_epoch_accuracies_model2 = (
+        np.mean(np.array(all_epoch_accuracies_model2), axis=0) if all_epoch_accuracies_model2 else []
+    )
+
+    # Visualization
+    if avg_epoch_accuracies_model1 and avg_epoch_accuracies_model2:
+        # visualize_vit_accuracies(avg_epoch_accuracies_model1, avg_epoch_accuracies_model2, "VIT", "ResNet18")
+        visualize_comp_accuracies(all_epoch_accuracies_model1, all_epoch_accuracies_model2, "VIT", "ResNet18")
+
+
+def plot_cluster_metric_for_two_models(folder_path_model1, folder_path_model2, metric_key, title, ylabel, num_epochs=15):
+    all_metrics_model1 = []
+    all_metrics_model2 = []
+
+    # Load metrics for Model 1
+    for epoch in range(1, num_epochs + 1):
+        json_filepath = os.path.join(folder_path_model1, f"Epoch_{epoch}", "evaluation_metrics.json")
+        data = load_metrics(json_filepath)
+        if data:
+            all_metrics_model1.append(data[metric_key])
+
+    # Load metrics for Model 2
+    for epoch in range(1, num_epochs + 1):
+        json_filepath = os.path.join(folder_path_model2, f"Epoch_{epoch}", "evaluation_metrics.json")
+        data = load_metrics(json_filepath)
+        if data:
+            all_metrics_model2.append(data[metric_key])
+
+    # Calculate average metrics for each model
+    avg_metrics_model1 = np.mean(all_metrics_model1, axis=0) if all_metrics_model1 else None
+    avg_metrics_model2 = np.mean(all_metrics_model2, axis=0) if all_metrics_model2 else None
+
+    # Visualization
+    if avg_metrics_model1 is not None and avg_metrics_model2 is not None:
+        visualize_comp_metrics(avg_metrics_model1, avg_metrics_model2, title, ylabel, "VIT", "ResNet18")
