@@ -10,13 +10,14 @@ The first step is to set up the development environment to allow us to run all t
 
 1. [Download](https://canvas.sydney.edu.au/courses/57772/files/35835364/download) the biotechnology data bundle
 2. Download and install Python 3.10.0 [here](https://www.python.org/downloads/)
-3. Clone this repository into your preferred location into the `scripts/` directory within the structure described below
+3. Clone this repository into the `scripts/` directory within the structure described below
 4. Ensure Python is installed using `python3 -V` (the output should be `Python 3.10.0`)
 5. From within the `scripts` directory, create a virtual environment using `python3 -m venv venv`
-6. Deactivate any existing environments using `deactivate` or `conda deactivate`
-7. Activate the created virtual environment using `source venv/bin/activate`
-8. Install dependencies using `pip install -r requirements.txt`
-9. Open the python notebook using VSCode or jupyter notebook and you should be ready to run the code! 
+6. Additionally, to be able to run the shiny app as well, create a second virtual environment from within the `shiny/` directory
+7. Deactivate any existing environments using `deactivate` or `conda deactivate`
+8. Activate the created virtual environment using `source venv/bin/activate`
+9. Install dependencies using `pip install -r requirements.txt`
+10. Open the python notebook using VSCode or jupyter notebook and you should be ready to run the code!
 
 ### Directory Structure
 For the reproducible code we assume that the python notebook is saved within the following directory structure:
@@ -30,7 +31,12 @@ For the reproducible code we assume that the python notebook is saved within the
         -   `Xenium_V1_FF_Mouse_Brain_Coronal_Subset_CTX_HP_outs.zip`
         -   `<unzipped files>`
     -   `scripts/`
-        -    processing.ipynb _(from this repo)_
-        -    DATA3888_Biotechnology_generateImages_2024.Rmd
+        -    **`<This repository>`**
 
-For you to be able to fully re-run this code you will need to download the contents of  `data_raw/`  separately (see the Rmd file in the data bundle).
+## Project Description
+
+For this project, we investigated the effect of combinations between image **transformations**, **masking techniques**, and various **CNN** models on *Prediction Accuracy*, *Precision*, *Recall*, and *F1 Score*. For more information on the whole process, please refer to our report `report/Image02_final_report.pdf`.
+
+To run all our code, please have a look at `final_notebook.ipynb`, with main results visualisations available in `visual_for_cross.ipynb` and `visual_for_single.ipynb`. Lastly, our [shiny app](https://gitparth12.shinyapps.io/data3888_imaging_02/) is live! Please feel free to visit the site and check out our findings (along with a fun little prediction capability with different model combinations).
+
+
