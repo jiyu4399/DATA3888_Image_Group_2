@@ -5,3 +5,5 @@ venv/
 venv/*
 test.py
 Biotechnology2
+plots.rmd
+template.rmd
