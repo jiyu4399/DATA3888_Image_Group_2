@@ -1,0 +1,12 @@
+{
+    "https://api.shinyapps.io": {
+        "server_url": "https://api.shinyapps.io",
+        "filename": "/Users/parthbhargava/Desktop/Uni/Year 3/Sem 2/DATA3888/shiny",
+        "app_url": "https://gitparth12.shinyapps.io/data3888_imaging_021/",
+        "app_id": 12072003,
+        "app_guid": null,
+        "title": "DATA3888_Imaging_02",
+        "app_mode": "python-shiny",
+        "app_store_version": 1
+    }
+}

@@ -1,4 +1,3 @@
-from icecream import ic
 from pathlib import Path
 import os
 import torch
@@ -54,7 +53,6 @@ def get_directory_name(model: str, transformation: str, masking: str) -> str:
 
 
 def predict_cluster(model_name, weights, image_info):
-    ic(model_name, weights, image_info)
     match model_name:
         case 'Basic CNN (Lab Model)':
             model = LabModel()
@@ -71,7 +69,6 @@ def predict_cluster(model_name, weights, image_info):
     image = np.array(Image.open(image_info[0]['datapath']).convert("L").resize((50, 50)))
     image_tensor = torch.tensor(image, dtype=torch.float32) / 255.0
     image_tensor = torch.unsqueeze(image_tensor, 0).to(device)
-    ic(image_tensor.shape)
     with torch.no_grad():
         pred = model(image_tensor if isinstance(model, LabModel) else image_tensor.unsqueeze(0))
 
