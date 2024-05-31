@@ -37,6 +37,6 @@ For the reproducible code we assume that the python notebook is saved within the
 
 For this project, we investigated the effect of combinations between image **transformations**, **masking techniques**, and various **CNN** models on *Prediction Accuracy*, *Precision*, *Recall*, and *F1 Score*. For more information on the whole process, please refer to our report `report/Image02_final_report.pdf`.
 
-To run all our code, please have a look at `final_notebook.ipynb`, with main results visualisations available in `visual_for_cross.ipynb` and `visual_for_single.ipynb`. Lastly, our [shiny app](https://gitparth12.shinyapps.io/data3888_imaging_02/) is live! Please feel free to visit the site and check out our findings (along with a fun little prediction capability with different model combinations).
+To run all our code, please have a look at `final_notebook.ipynb`, with main results visualisations available in `visual_for_cross.ipynb` and `visual_for_single.ipynb`. Lastly, our [shiny app](https://gitparth12.shinyapps.io/data3888_imaging_021/) is live! Please feel free to visit the site and check out our findings (along with a fun little prediction capability with different model combinations).
 
 
